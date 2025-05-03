@@ -16,6 +16,7 @@
     "@langchain/pinecone": "^0.2.0",
     "@pinecone-database/pinecone": "^5.1.2",
     "ai": "^4.3.10",
+    "clsx": "^2.1.1",
     "langchain": "^0.3.24",
     "lucide-react": "^0.506.0",
     "next": "15.3.0",
@@ -23,7 +24,8 @@
     "pdf-parse": "^1.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-dropzone": "^14.3.8"
+    "react-dropzone": "^14.3.8",
+    "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

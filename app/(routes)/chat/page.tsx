@@ -1,4 +1,5 @@
 "use client";
+import { SendHorizonal } from "lucide-react";
 import { useState } from "react";
 
 export default function ChatBot() {
@@ -7,7 +8,7 @@ export default function ChatBot() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "Yo, this is ChatterBot! How can I help you today?",
+      content: "Hi there, How can I help you today?",
     },
   ]);
 
@@ -27,7 +28,7 @@ export default function ChatBot() {
     setTheInput("");
     console.log("Calling OpenAI...");
 
-    const response = await fetch("/api/chat", {
+    const response = await fetch("/api/basic-chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -45,13 +46,13 @@ export default function ChatBot() {
   };
 
   return (
-    <div className="flex  h-[35rem] w-[40rem] flex-col items-center bg-gray-600 rounded-xl">
-      <div className=" h-full flex flex-col gap-2 overflow-y-auto py-8 px-3 w-full">
+    <div className="flex h-screen w-full flex-col items-center">
+      <div className="h-[80%] flex flex-col gap-4 overflow-y-auto py-8 px-3 w-full">
         {messages.map((e) => {
           return (
             <div
               key={e.content}
-              className={`w-max max-w-[18rem] rounded-md px-4 py-3 h-min ${
+              className={`w-max max-w-[24rem] rounded-md px-4 py-3 h-min ${
                 e.role === "assistant"
                   ? "self-start  bg-gray-200 text-gray-800"
                   : "self-end  bg-gray-800 text-gray-50"
@@ -70,19 +71,20 @@ export default function ChatBot() {
           ""
         )}
       </div>
-      <div className="relative  w-[80%] bottom-4 flex justify-center">
+      <div className="absolute w-full bottom-4 flex justify-center px-3">
         <textarea
+          placeholder="Ask anything..."
           value={theInput}
           onChange={(event) => setTheInput(event.target.value)}
-          className="w-[85%] h-10 px-3 py-2
-          resize-none overflow-y-auto text-black bg-gray-300 rounded-l outline-none"
+          className="w-full h-10 px-3 py-2
+          resize-none overflow-y-auto text-black bg-gray-200 rounded-l outline-none"
           onKeyDown={Submit}
         />
         <button
           onClick={callGetResponse}
-          className="w-[15%] bg-blue-500 px-4 py-2 rounded-r"
+          className="bg-gray-800 px-5 py-2 rounded-r cursor-pointer"
         >
-          send
+          <SendHorizonal className="h-6 w-6" />
         </button>
       </div>
     </div>

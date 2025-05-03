@@ -20,3 +20,11 @@ export const menuItems = [
     url: "/doc-chat",
   },
 ];
+
+export const supportedAudioFileTypes = {
+  "audio/mpeg": [".mp3", ".mpga", ".mpeg"],
+  "audio/mp4": [".m4a"],
+  "audio/wav": [".wav"],
+  "video/mp4": [".mp4"],
+  "video/webm": [".webm"],
+};

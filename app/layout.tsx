@@ -20,10 +20,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className}`}>
-        <div className="min-h-screen bg-gray-100">
+      <body className={`${inter.className} overflow-y-hidden`}>
+        <div className="bg-gray-100">
           <Header />
-          <main className="flex min-h-screen flex-col items-center justify-between px-24 py-5">
+          <main className="flex flex-col items-center justify-between pt-16 min-h-screen">
             {children}
           </main>
         </div>
