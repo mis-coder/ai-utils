@@ -6,8 +6,8 @@ export const menuItems = [
   },
   {
     id: 1,
-    name: "Basic Chatbot",
-    url: "/chat",
+    name: "Basic Chat",
+    url: "/basic-chat",
   },
   {
     id: 2,

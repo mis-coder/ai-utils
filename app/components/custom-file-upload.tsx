@@ -38,7 +38,6 @@ export default function CustomFileUpload({
   // Format allowed types for display
   const formatAllowedTypes = () => {
     const formattedAllowedTypes = allowedFileTypes.join(", ");
-    console.log({ formattedAllowedTypes });
 
     return formattedAllowedTypes;
   };

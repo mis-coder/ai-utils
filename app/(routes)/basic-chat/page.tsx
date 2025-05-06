@@ -12,7 +12,7 @@ interface Message {
   content: string;
 }
 
-export default function ChatBot() {
+export default function BasicChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
