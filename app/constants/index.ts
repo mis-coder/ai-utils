@@ -19,6 +19,11 @@ export const menuItems = [
     name: "Doc Chat",
     url: "/doc-chat",
   },
+  {
+    id: 4,
+    name: "Imagine",
+    url: "/imagine",
+  },
 ];
 
 export const supportedAudioFileTypes = {

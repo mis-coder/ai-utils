@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-
+import { Toaster } from "react-hot-toast";
 import Header from "./components/header";
 import "./globals.css";
 
@@ -20,12 +20,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} overflow-y-hidden`}>
+      <body className={`${inter.className}`}>
+        <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <div className="bg-gray-100">
           <Header />
-          <main className="flex flex-col items-center justify-between pt-16 min-h-screen">
-            {children}
-          </main>
+          <main className="pt-16 min-h-screen">{children}</main>
         </div>
       </body>
     </html>
