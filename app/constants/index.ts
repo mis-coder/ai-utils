@@ -21,15 +21,25 @@ export const menuItems = [
   },
   {
     id: 4,
-    name: "Imagine",
-    url: "/imagine",
+    name: "Imagene",
+    url: "/imagene",
   },
 ];
 
-export const supportedAudioFileTypes = {
-  "audio/mpeg": [".mp3", ".mpga", ".mpeg"],
-  "audio/mp4": [".m4a"],
-  "audio/wav": [".wav"],
-  "video/mp4": [".mp4"],
-  "video/webm": [".webm"],
-};
+export const supportedAudioMimeTypes = [
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/wav",
+  "video/mp4",
+  "video/webm",
+];
+
+export const supportedAudioFileTypes = [
+  ".mp3",
+  ".mpga",
+  ".mpeg",
+  ".m4a",
+  ".wav",
+  ".mp4",
+  ".webm",
+];

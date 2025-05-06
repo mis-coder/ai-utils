@@ -1,18 +1,52 @@
 "use client";
 import { useState } from "react";
-import FileDropzone from "../../components/file-dropzone";
-import { supportedAudioFileTypes } from "../../constants";
+import { toast } from "react-hot-toast";
+import Button from "../../components/button";
+import CustomFileUpload from "../../components/custom-file-upload";
+import {
+  supportedAudioFileTypes,
+  supportedAudioMimeTypes,
+} from "../../constants";
 
 export default function Whisperer() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [localFile, setLocalFile] = useState<File | null>(null);
   const [response, setResponse] = useState("");
 
-  const getFileTranscription = async (file: File) => {
-    console.log({ file });
+  /**
+   * Handles file upload and performs validation (e.g., size limit).
+   * If valid, stores file in state.
+   */
+  const handleFileUpload = (file: File) => {
+    setResponse("");
 
     if (!file) return;
 
+    // Reject file if size exceeds 25MB
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error("File size exceeds 25MB limit.");
+      return;
+    }
+
+    setLocalFile(file);
+    toast.success("File uploaded successfully.");
+  };
+
+  /**
+   * Sends the uploaded file to the transcription API.
+   * Streams the response and updates the UI with transcribed content.
+   */
+  const getFileTranscription = async () => {
+    if (!localFile) {
+      toast.error("No file selected.");
+      return;
+    }
+
+    setResponse("");
+    setIsLoading(true);
+
     const formData = new FormData();
-    formData.set("file", file);
+    formData.set("file", localFile);
 
     try {
       const response = await fetch("/api/transcribe", {
@@ -20,36 +54,65 @@ export default function Whisperer() {
         body: formData,
       });
 
-      if (response.ok) {
-        const json = await response.json();
-        setResponse(json.output.text);
-        // console.log({ response.json() });
-        // const reader = response?.body?.getReader();
-        // const decoder = new TextDecoder();
-        // let fullText = "";
+      setIsLoading(false);
 
-        // if (reader) {
-        //   while (true) {
-        //     const { value, done } = await reader.read();
-        //     if (done) break;
-        //     const chunk = decoder.decode(value, { stream: true });
-        //     fullText += chunk;
-        //     setResponse((prev) => prev + chunk);
-        //   }
-        // }
+      // Handle unsuccessful request
+      if (!response.ok || !response.body) {
+        toast.error("Failed to transcribe the audio.");
+        return;
       }
+
+      // Stream the response content in chunks
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        setResponse((prev) => prev + chunk);
+      }
+
+      toast.success("Transcription completed.");
     } catch (error) {
-      console.error("An error occurred while uploading the file", error);
+      setIsLoading(false);
+      toast.error("An error occurred during transcription.");
     }
   };
 
+  /**
+   * Resets local file and response state.
+   */
+  const handleFileDelete = () => {
+    setLocalFile(null);
+    setResponse("");
+    toast("File removed.");
+  };
+
   return (
-    <div>
-      <FileDropzone
-        onFilesAccepted={getFileTranscription}
-        acceptedFileTypes={supportedAudioFileTypes}
-      />
-      <p>{response ? response : "Upload a file to transcribe"}</p>
+    <div className="text-gray-900 overflow-auto flex flex-col items-center">
+      <div className="flex flex-col gap-2 items-center mt-4">
+        <CustomFileUpload
+          allowedFileTypes={supportedAudioFileTypes}
+          allowedMimeTypes={supportedAudioMimeTypes}
+          maxSize={5 * 1024 * 1024} // 5MB
+          onFileUpload={handleFileUpload}
+          onFileDelete={handleFileDelete}
+        />
+        {localFile && (
+          <Button onClick={getFileTranscription} disabled={isLoading}>
+            Transcribe Now
+          </Button>
+        )}
+      </div>
+
+      <div className="px-4 mt-4 w-full md:w-1/2">
+        {isLoading && <p>Transcribing...</p>}
+        {response && <div className="mt-3 whitespace-pre-wrap">{response}</div>}
+      </div>
     </div>
   );
 }
