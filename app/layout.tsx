@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Toaster } from "react-hot-toast";
+import { ClientProviders } from "./components/client-providers";
 import Header from "./components/header";
 import "./globals.css";
 
@@ -21,11 +21,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className}`}>
-        <Toaster position="top-center" toastOptions={{ duration: 5000 }} />
-        <div className="bg-gray-100">
-          <Header />
-          <main className="pt-16 min-h-screen">{children}</main>
-        </div>
+        <ClientProviders>
+          <div className="bg-gray-100">
+            <Header />
+            <main className="pt-16 min-h-screen">{children}</main>
+          </div>
+        </ClientProviders>
       </body>
     </html>
   );

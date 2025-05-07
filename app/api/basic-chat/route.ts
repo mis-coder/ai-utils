@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_KEY });
 const MODEL = "gpt-3.5-turbo";
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
+    const apiKey = req.headers.get("x-openai-api-key");
 
+    if (!apiKey) {
+      return NextResponse.json(
+        { message: "Missing OpenAI API key." },
+        { status: 400 }
+      );
+    }
+
+    const decodedApiKey = atob(apiKey);
+
+    console.log({ apiKey, decodedApiKey });
+
+    const openai = new OpenAI({ apiKey: decodedApiKey });
     const completion = await openai.chat.completions.create({
       model: MODEL,
       messages,

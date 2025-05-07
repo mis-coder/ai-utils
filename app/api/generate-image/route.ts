@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const huggingFaceResponse = await fetch(HUGGING_FACE_API_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.HF_API_KEY}`,
+        Authorization: `Bearer ${process.env.HF_ACCESS_TOKEN}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ inputs: prompt }),

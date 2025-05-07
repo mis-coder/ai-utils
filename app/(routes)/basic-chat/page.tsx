@@ -1,12 +1,19 @@
 "use client";
 
 import { nanoid } from "nanoid";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import ChatBox from "../../components/chat-box";
+import { API_KEYS, ROUTE_CREDENTIAL_REQUIREMENTS } from "../../constants";
+import { useCredentialCheck } from "../../hooks/check-credentials";
 import { Message } from "../../lib/types";
 
 export default function BasicChat() {
+  const pathname = usePathname();
+
+  const { ensureCredentials } = useCredentialCheck();
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -17,6 +24,13 @@ export default function BasicChat() {
     },
   ]);
 
+  const routeCredentials = ROUTE_CREDENTIAL_REQUIREMENTS[pathname];
+
+  // Check for required credentials on mount
+  useEffect(() => {
+    ensureCredentials(routeCredentials);
+  }, []);
+
   const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -25,6 +39,10 @@ export default function BasicChat() {
   };
 
   const handleSubmit = async () => {
+    const canProceed = ensureCredentials(routeCredentials);
+
+    if (!canProceed) return;
+
     const trimmed = input.trim();
     if (!trimmed) {
       toast.error("Message cannot be empty");
@@ -44,7 +62,10 @@ export default function BasicChat() {
     try {
       const response = await fetch("/api/basic-chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-openai-api-key": sessionStorage.getItem(API_KEYS.OPENAI_API_KEY) ?? "",
+        },
         body: JSON.stringify({ messages: [...messages, userMessage] }),
       });
 
@@ -76,6 +97,7 @@ export default function BasicChat() {
         onInputChange={setInput}
         onSubmit={handleSubmit}
         onKeyPress={handleKeyPress}
+        placeholder="Ask anything..."
       />
     </div>
   );

@@ -195,6 +195,7 @@ export default function PdfChatbot() {
           onInputChange={setInput}
           onSubmit={handleSubmit}
           onKeyPress={handleKeyPress}
+          placeholder="Try: Summarize the document for me"
         />
       </div>
     </div>

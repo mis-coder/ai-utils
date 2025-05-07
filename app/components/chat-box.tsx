@@ -11,6 +11,7 @@ interface ChatBoxProps {
   onInputChange: (value: string) => void;
   onSubmit: () => void;
   onKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
 }
 
 export default function ChatBox({
@@ -20,6 +21,7 @@ export default function ChatBox({
   onInputChange,
   onSubmit,
   onKeyPress,
+  placeholder = "Type something here...",
 }: ChatBoxProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -53,7 +55,7 @@ export default function ChatBox({
       {/* Input */}
       <div className="absolute w-full bottom-1 flex justify-center px-3">
         <textarea
-          placeholder="Try: Summarize the document for me"
+          placeholder={placeholder}
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={onKeyPress}

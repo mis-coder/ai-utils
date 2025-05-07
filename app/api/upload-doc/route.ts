@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadAndSplitPDF } from "../../lib/pdfProcessor";
-import { uploadToPinecone } from "../../lib/pineconeUploader";
+import { loadAndSplitPDF } from "../../lib/pdf-processor";
+import { uploadToPinecone } from "../../lib/pinecone-uploader";
 
 export async function POST(request: NextRequest) {
   try {
