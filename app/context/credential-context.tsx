@@ -3,9 +3,9 @@ import React, { createContext, useContext, useState } from "react";
 type CredentialModalConfig = {
   visible: boolean;
   data: {
-   requiredKeys: string[],
-   title: string,
-   description: string
+    requiredKeys: string[];
+    title: string;
+    description: string;
   } | null;
   onSuccess?: () => void;
 };
@@ -27,13 +27,12 @@ export const CredentialProvider = ({
 }) => {
   const [modalConfig, setModalConfig] = useState<CredentialModalConfig>({
     visible: false,
-    data: null
+    data: null,
   });
 
   const showModal = (config: CredentialModalConfig) =>
     setModalConfig({ ...config });
 
-  console.log({ modalConfig });
   const hideModal = () => setModalConfig({ visible: false, data: null });
 
   return (

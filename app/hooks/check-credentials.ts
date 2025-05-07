@@ -9,7 +9,6 @@ export const useCredentialCheck = () => {
       (key) => !sessionStorage.getItem(key)
     );
 
-    console.log({ missing });
     if (missing.length > 0) {
       showModal({
         visible: true,

@@ -53,7 +53,6 @@ export default function ImageAI() {
       });
 
       if (!response.ok) {
-        console.log("no ok");
         toast.error("Failed to generate image.");
         return;
       }

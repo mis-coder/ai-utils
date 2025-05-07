@@ -13,8 +13,6 @@ const Header = () => {
   const pathname = usePathname();
   const isRootPage = pathname === "/";
 
-  console.log({ pathname });
-
   if (isRootPage) return null;
 
   const toggleSidebar = () => {
@@ -26,16 +24,21 @@ const Header = () => {
   };
 
   const getActivePageName = () => {
-    return menuItems.find(item => item.url === pathname)?.name ?? "";
-  }
+    return menuItems.find((item) => item.url === pathname)?.name ?? "";
+  };
 
   return (
     <>
       {/* Header */}
       <header className="bg-white shadow-sm fixed w-full z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <div className="font-bold text-xl text-gray-800">AI Utils / <span className="text-[18px] text-gray-500 font-normal">{getActivePageName()}</span></div>
+            <div className="font-bold text-xl text-gray-800">
+              <Link href="/">AI Utils</Link> /{" "}
+              <span className="text-[18px] text-gray-500 font-normal">
+                {getActivePageName()}
+              </span>
+            </div>
 
             {/* Menu Icon */}
             <button

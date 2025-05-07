@@ -5,26 +5,31 @@ export const menuItems = [
     id: 0,
     name: "Home",
     url: "/",
+    emoji: "",
   },
   {
     id: 1,
     name: "Basic Chat",
     url: "/basic-chat",
+    emoji: "💬",
   },
   {
     id: 2,
     name: "Audio Scribe",
     url: "/audio-scribe",
+    emoji: "🎙️",
   },
   {
     id: 3,
     name: "Doc Chat",
     url: "/doc-chat",
+    emoji: "📄",
   },
   {
     id: 4,
     name: "Imagene",
     url: "/imagene",
+    emoji: "🎨",
   },
 ];
 

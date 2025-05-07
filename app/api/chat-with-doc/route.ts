@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Create vector store from Pinecone index
     const vectorStore = await PineconeStore.fromExistingIndex(
-      new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY }),
+      new OpenAIEmbeddings({ openAIApiKey: decodedOpenaiApiKey }),
       { pineconeIndex: _pineconeIndex }
     );
 
