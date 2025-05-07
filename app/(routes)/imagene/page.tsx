@@ -1,14 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Button from "../../components/button";
 import Input from "../../components/input";
+import { API_KEYS, ROUTE_CREDENTIAL_REQUIREMENTS } from "../../constants";
+import { useCredentialCheck } from "../../hooks/check-credentials";
+import { SupportedRoute } from "../../lib/types";
 
 export default function ImageAI() {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+
+  const pathname = usePathname();
+  const { ensureCredentials } = useCredentialCheck();
+
+  const routeCredentials =
+    ROUTE_CREDENTIAL_REQUIREMENTS[pathname as SupportedRoute];
+
+  // Check for required credentials on mount
+  useEffect(() => {
+    ensureCredentials(routeCredentials);
+  }, []);
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPrompt(e.target.value);
@@ -20,6 +35,10 @@ export default function ImageAI() {
       return;
     }
 
+    if (!ensureCredentials(routeCredentials)) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -27,6 +46,8 @@ export default function ImageAI() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-hf-access-token":
+            sessionStorage.getItem(API_KEYS.HUGGING_FACE_ACCESS_TOKEN) ?? "",
         },
         body: JSON.stringify({ prompt }),
       });
@@ -49,7 +70,7 @@ export default function ImageAI() {
   };
 
   return (
-    <div className="text-gray-900 h-[80vh] w-screen flex flex-col gap-10 items-center pt-4 mx-auto">
+    <div className="text-gray-900 h-screen w-screen flex flex-col gap-10 items-center pt-4 mx-auto">
       <div className="flex gap-2 w-full md:w-1/2 px-4 md:px-0">
         <Input
           type="text"

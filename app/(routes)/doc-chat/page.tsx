@@ -1,18 +1,22 @@
 "use client";
 
 import { nanoid } from "nanoid";
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
 import Button from "../../components/button";
 import CustomFileUpload from "../../components/custom-file-upload";
 
+import { usePathname } from "next/navigation";
 import ChatBox from "../../components/chat-box";
 import {
+  API_KEYS,
+  ROUTE_CREDENTIAL_REQUIREMENTS,
   supportedTextFileTypes,
   supportedTextMimeTypes,
 } from "../../constants";
-import { Message } from "../../lib/types";
+import { useCredentialCheck } from "../../hooks/check-credentials";
+import { Message, SupportedRoute } from "../../lib/types";
 
 export default function PdfChatbot() {
   const [input, setInput] = useState("");
@@ -28,6 +32,17 @@ export default function PdfChatbot() {
     },
   ]);
 
+  const pathname = usePathname();
+  const { ensureCredentials } = useCredentialCheck();
+
+  const routeCredentials =
+    ROUTE_CREDENTIAL_REQUIREMENTS[pathname as SupportedRoute];
+
+  // Check for required credentials on mount
+  useEffect(() => {
+    ensureCredentials(routeCredentials);
+  }, []);
+
   const [userId] = useState(
     () => localStorage.getItem("chat_user_id") || nanoid()
   );
@@ -36,11 +51,6 @@ export default function PdfChatbot() {
   useEffect(() => {
     localStorage.setItem("chat_user_id", userId);
   }, [userId]);
-
-  // Handle text input change
-  const handleInputChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(event.target.value);
-  };
 
   // Submit prompt when Enter is pressed (without Shift)
   const handleKeyPress = async (
@@ -60,6 +70,8 @@ export default function PdfChatbot() {
         return;
       }
 
+      if (!ensureCredentials(routeCredentials)) return;
+
       setIsProcessingPdf(true);
 
       const formData = new FormData();
@@ -67,6 +79,14 @@ export default function PdfChatbot() {
 
       const response = await fetch("/api/upload-doc", {
         method: "POST",
+        headers: {
+          "x-pinecone-api-key":
+            sessionStorage.getItem(API_KEYS.PINECONE_API_KEY) ?? "",
+          "x-pinecone-index":
+            sessionStorage.getItem(API_KEYS.PINECONE_INDEX) ?? "",
+          "x-openai-api-key":
+            sessionStorage.getItem(API_KEYS.OPENAI_API_KEY) ?? "",
+        },
         body: formData,
       });
 
@@ -90,6 +110,8 @@ export default function PdfChatbot() {
   const handleSubmit = async () => {
     if (!input.trim()) return;
 
+    if (!ensureCredentials(routeCredentials)) return;
+
     const prompt = input;
     setInput("");
     setIsLoading(true);
@@ -103,7 +125,15 @@ export default function PdfChatbot() {
     try {
       const res = await fetch("/api/chat-with-doc", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-pinecone-api-key":
+            sessionStorage.getItem(API_KEYS.PINECONE_API_KEY) ?? "",
+          "x-pinecone-index":
+            sessionStorage.getItem(API_KEYS.PINECONE_INDEX) ?? "",
+          "x-openai-api-key":
+            sessionStorage.getItem(API_KEYS.OPENAI_API_KEY) ?? "",
+        },
         body: JSON.stringify({ userId, prompt }),
       });
 
@@ -187,17 +217,19 @@ export default function PdfChatbot() {
         )}
       </div>
 
-      <div className="h-[70%] flex md:w-1/2 mx-auto flex-col items-center overflow-auto bg-white relative rounded-md">
-        <ChatBox
-          messages={messages}
-          input={input}
-          isLoading={isLoading}
-          onInputChange={setInput}
-          onSubmit={handleSubmit}
-          onKeyPress={handleKeyPress}
-          placeholder="Try: Summarize the document for me"
-        />
-      </div>
+      {showChatBox && (
+        <div className="h-[70%] flex md:w-1/2 mx-auto flex-col items-center overflow-auto bg-white relative rounded-md">
+          <ChatBox
+            messages={messages}
+            input={input}
+            isLoading={isLoading}
+            onInputChange={setInput}
+            onSubmit={handleSubmit}
+            onKeyPress={handleKeyPress}
+            placeholder="Try: Summarize the document for me"
+          />
+        </div>
+      )}
     </div>
   );
 }

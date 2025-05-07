@@ -2,21 +2,30 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
 import { Pinecone } from "@pinecone-database/pinecone";
 
-export async function uploadToPinecone(splitDocuments: any[]) {
-  const pinecone = new Pinecone();
+export async function uploadToPinecone(
+  splitDocuments: any[],
+  config: {
+    pineconeApiKey: string;
+    pineconeIndex: string;
+    openaiApiKey: string;
+  }
+) {
+  const { pineconeApiKey, pineconeIndex, openaiApiKey } = config;
 
-  const pineconeIndex = pinecone.Index(
-    process.env.PINECONE_INDEX_NAME as string
-  );
+  const pinecone = new Pinecone({
+    apiKey: pineconeApiKey,
+  });
+
+  const _pineconeIndex = pinecone.Index(pineconeIndex);
 
   const embeddings = new OpenAIEmbeddings({
-    openAIApiKey: process.env.OPENAI_API_KEY,
+    openAIApiKey: openaiApiKey,
   });
 
   const response = await PineconeStore.fromDocuments(
     splitDocuments,
     embeddings,
-    { pineconeIndex }
+    { pineconeIndex: _pineconeIndex }
   );
 
   return response;

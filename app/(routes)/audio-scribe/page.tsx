@@ -1,17 +1,33 @@
 "use client";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import Button from "../../components/button";
 import CustomFileUpload from "../../components/custom-file-upload";
 import {
+  API_KEYS,
+  ROUTE_CREDENTIAL_REQUIREMENTS,
   supportedAudioFileTypes,
   supportedAudioMimeTypes,
 } from "../../constants";
+import { useCredentialCheck } from "../../hooks/check-credentials";
+import { SupportedRoute } from "../../lib/types";
 
 export default function Whisperer() {
   const [isLoading, setIsLoading] = useState(false);
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [response, setResponse] = useState("");
+
+  const pathname = usePathname();
+  const { ensureCredentials } = useCredentialCheck();
+
+  const routeCredentials =
+    ROUTE_CREDENTIAL_REQUIREMENTS[pathname as SupportedRoute];
+
+  // Check for required credentials on mount
+  useEffect(() => {
+    ensureCredentials(routeCredentials);
+  }, []);
 
   /**
    * Handles file upload and performs validation (e.g., size limit).
@@ -42,6 +58,10 @@ export default function Whisperer() {
       return;
     }
 
+    if (!ensureCredentials(routeCredentials)) {
+      return;
+    }
+
     setResponse("");
     setIsLoading(true);
 
@@ -51,6 +71,10 @@ export default function Whisperer() {
     try {
       const response = await fetch("/api/transcribe", {
         method: "POST",
+        headers: {
+          "x-openai-api-key":
+            sessionStorage.getItem(API_KEYS.OPENAI_API_KEY) ?? "",
+        },
         body: formData,
       });
 

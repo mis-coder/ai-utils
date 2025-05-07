@@ -8,6 +8,17 @@ export async function POST(req: NextRequest) {
     // Parse the form data from the request
     const data = await req.formData();
 
+    const apiKey = req.headers.get("x-openai-api-key");
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { message: "Missing OpenAI API key." },
+        { status: 400 }
+      );
+    }
+
+    const decodedApiKey = atob(apiKey);
+
     // Extract the audio file from the form data
     const file = data.get("file") as File | null;
 
@@ -24,7 +35,7 @@ export async function POST(req: NextRequest) {
     const openaiResponse = await fetch(OPENAI_TRANSCRIPTION_API, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${decodedApiKey}`,
       },
       body: openaiForm,
     });

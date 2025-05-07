@@ -1,7 +1,8 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { API_KEY_FIELD_LABELS } from "../constants";
+import { API_KEY_FIELD_LABELS, API_KEYS } from "../constants";
 import { useCredentialModal } from "../context/credential-context";
+import { CredentialKey } from "../lib/types";
 import Button from "./button";
 import Input from "./input";
 
@@ -19,8 +20,12 @@ export const CredentialModal = () => {
 
   if (!modalConfig.visible) return null;
 
+  const getItemFromStorage = (key: string) => {
+    return atob(sessionStorage.getItem(API_KEYS[key as CredentialKey]) ?? "");
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex justify-center items-center text-gray-900">
+    <div className="fixed inset-0 bg-black/40 z-40 flex justify-center items-center text-gray-900">
       <div className=" bg-white p-6 rounded-xl w-[90%] max-w-md shadow-xl">
         {modalConfig.data?.title && (
           <h2 className="text-gray-900 mb-2">{modalConfig.data?.title}</h2>
@@ -34,13 +39,13 @@ export const CredentialModal = () => {
           {modalConfig.data?.requiredKeys.map((key) => (
             <div key={key} className="mb-4 mt-4 py-4">
               <label className="block text-xs font-medium mb-1">
-                {API_KEY_FIELD_LABELS[key] || key}*
+                {API_KEY_FIELD_LABELS[key as CredentialKey] || key}*
               </label>
               <div className="relative">
                 <Input
                   type={show[key] ? "text" : "password"}
                   className="w-full px-3 pr-8 py-2 border rounded-md"
-                  value={inputs[key] || ""}
+                  value={getItemFromStorage(key) || inputs[key] || ""}
                   onChange={(e) =>
                     setInputs((prev) => ({ ...prev, [key]: e.target.value }))
                   }

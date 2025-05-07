@@ -28,22 +28,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const pineconeApiKey = request.headers.get("x-pinecone-api-key");
+    const pineconeIndex = request.headers.get("x-pinecone-index");
+    const openaiApiKey = request.headers.get("x-openai-api-key");
+
+    if (!pineconeApiKey || !pineconeIndex || !openaiApiKey) {
+      return NextResponse.json({
+        success: false,
+        error: "One or more API keys missing",
+      });
+    }
+
+    const decodedPineconeApiKey = atob(pineconeApiKey);
+    const decodedPineconeIndex = atob(pineconeIndex);
+    const decodedOpenaiApiKey = atob(openaiApiKey);
+
     // 1. Initialize Pinecone client
-    const pinecone = new Pinecone();
-    const pineconeIndex = pinecone.Index(
-      process.env.PINECONE_INDEX_NAME as string
-    );
+    const pinecone = new Pinecone({
+      apiKey: decodedPineconeApiKey,
+    });
+    const _pineconeIndex = pinecone.Index(decodedPineconeIndex);
 
     // 2. Create vector store from Pinecone index
     const vectorStore = await PineconeStore.fromExistingIndex(
       new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY }),
-      { pineconeIndex }
+      { pineconeIndex: _pineconeIndex }
     );
 
     // 3. Initialize OpenAI LLM
     const model = new ChatOpenAI({
       modelName: "gpt-3.5-turbo",
-      openAIApiKey: process.env.OPENAI_API_KEY,
+      openAIApiKey: decodedOpenaiApiKey,
     });
 
     // 4. Create role-based prompt template

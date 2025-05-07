@@ -1,9 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { menuItems } from "./constants";
+import { useCredentialModal } from "./context/credential-context";
 
 export default function Home() {
+  const {
+    modalConfig: { visible: modalVisible },
+    hideModal,
+  } = useCredentialModal();
+
+  useEffect(() => {
+    if (modalVisible) {
+      hideModal();
+    }
+  }, []);
+
   return (
     <div className="flex flex-col flex-wrap md:flex-row items-center justify-center h-screen w-full gap-6">
       {menuItems.map(

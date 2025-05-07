@@ -17,8 +17,6 @@ export async function POST(req: Request) {
 
     const decodedApiKey = atob(apiKey);
 
-    console.log({ apiKey, decodedApiKey });
-
     const openai = new OpenAI({ apiKey: decodedApiKey });
     const completion = await openai.chat.completions.create({
       model: MODEL,

@@ -32,7 +32,7 @@ const Header = () => {
   return (
     <>
       {/* Header */}
-      <header className="bg-white shadow-sm fixed w-full">
+      <header className="bg-white shadow-sm fixed w-full z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="font-bold text-xl text-gray-800">AI Utils / <span className="text-[18px] text-gray-500 font-normal">{getActivePageName()}</span></div>
@@ -58,7 +58,7 @@ const Header = () => {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 right-0 max-w-xs w-full bg-white shadow-xl z-30 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 right-0 max-w-xs w-full bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

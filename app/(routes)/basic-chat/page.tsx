@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import ChatBox from "../../components/chat-box";
 import { API_KEYS, ROUTE_CREDENTIAL_REQUIREMENTS } from "../../constants";
 import { useCredentialCheck } from "../../hooks/check-credentials";
-import { Message } from "../../lib/types";
+import { Message, SupportedRoute } from "../../lib/types";
 
 export default function BasicChat() {
   const pathname = usePathname();
@@ -24,7 +24,8 @@ export default function BasicChat() {
     },
   ]);
 
-  const routeCredentials = ROUTE_CREDENTIAL_REQUIREMENTS[pathname];
+  const routeCredentials =
+    ROUTE_CREDENTIAL_REQUIREMENTS[pathname as SupportedRoute];
 
   // Check for required credentials on mount
   useEffect(() => {
@@ -64,7 +65,8 @@ export default function BasicChat() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-openai-api-key": sessionStorage.getItem(API_KEYS.OPENAI_API_KEY) ?? "",
+          "x-openai-api-key":
+            sessionStorage.getItem(API_KEYS.OPENAI_API_KEY) ?? "",
         },
         body: JSON.stringify({ messages: [...messages, userMessage] }),
       });
