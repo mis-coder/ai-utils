@@ -1,14 +1,32 @@
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+import {
+  ChatPromptTemplate,
+  HumanMessagePromptTemplate,
+  MessagesPlaceholder,
+  SystemMessagePromptTemplate,
+} from "@langchain/core/prompts";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { createRetrievalChain } from "langchain/chains/retrieval";
+import { nanoid } from "nanoid";
 import { NextRequest, NextResponse } from "next/server";
+import { Message } from "../../lib/types";
+
+// In-memory chat sessions (use DB for production)
+const sessions = new Map<string, Message[]>();
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const { userId, prompt: currentPrompt } = body;
+
+    if (!userId || !currentPrompt) {
+      return NextResponse.json(
+        { success: false, error: "Missing userId or prompt" },
+        { status: 400 }
+      );
+    }
 
     // 1. Initialize Pinecone client
     const pinecone = new Pinecone();
@@ -28,61 +46,81 @@ export async function POST(request: NextRequest) {
       openAIApiKey: process.env.OPENAI_API_KEY,
     });
 
-    // Create a prompt template for the model
-    const prompt = ChatPromptTemplate.fromTemplate(`
-        Answer the question based on the following context:
-        {context}
-        Question: {question}
-        Chat History: {chat_history}
-      `);
+    // 4. Create role-based prompt template
+    const prompt = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        "You are a helpful assistant. Use the following context to answer the user's question:\n{context}"
+      ),
+      new MessagesPlaceholder("chat_history"),
+      HumanMessagePromptTemplate.fromTemplate("{question}"),
+    ]);
 
-    // 4. Create a document chain that combines documents and context
+    // 5. Create document chain
     const documentChain = await createStuffDocumentsChain({
       llm: model,
       prompt,
       documentPrompt: ChatPromptTemplate.fromTemplate("{page_content}"),
     });
 
-    // 5. Create the retrieval chain to get relevant documents from Pinecone
+    // 6. Create retrieval chain
     const chain = await createRetrievalChain({
       retriever: vectorStore.asRetriever(),
       combineDocsChain: documentChain,
     });
 
-    // Retrieve documents relevant to the user's question
-    const documents = await vectorStore.asRetriever().invoke(body.prompt);
+    // 7. Retrieve relevant documents for context
+    const documents = await vectorStore.asRetriever().invoke(currentPrompt);
+    const context = documents.map((doc) => doc.pageContent).join("\n\n");
 
-    console.log({ documents });
-    // Make sure context is populated with documents from the vector store
-    const context = documents[0].pageContent; // Combine multiple document contents
+    // 8. Fetch and extend chat history
+    const userHistory = sessions.get(userId) || [];
+    const fullChatHistory = [
+      ...userHistory,
+      { role: "user", content: currentPrompt },
+    ];
 
-    console.log({ context });
-    // 6. Execute the chain with the question and context
+    // 9. Stream response
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
+        let fullResponse = "";
         for await (const chunk of await chain.stream({
-          input: body.prompt,
-          question: body.prompt,
+          input: currentPrompt,
+          question: currentPrompt,
           context,
-          chat_history: "",
+          chat_history: JSON.stringify(fullChatHistory),
         })) {
           const answer = chunk.answer || "";
+          fullResponse += answer;
           controller.enqueue(encoder.encode(answer));
         }
+
+        // 10. Store updated history
+        userHistory.push({
+          id: nanoid(),
+          role: "user",
+          content: currentPrompt,
+        });
+        userHistory.push({
+          id: nanoid(),
+          role: "assistant",
+          content: fullResponse,
+        });
+        sessions.set(userId, userHistory);
+
         controller.close();
       },
     });
 
-    // 7. Return the streaming response
+    // 11. Return streaming response
     return new NextResponse(stream, {
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error: unknown) {
-    console.error({ error });
-    return NextResponse.json({
-      success: false,
-      error: "Internal Server Error",
-    });
+  } catch (error) {
+    console.error("Chat error:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

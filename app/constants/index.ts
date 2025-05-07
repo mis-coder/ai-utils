@@ -43,3 +43,7 @@ export const supportedAudioFileTypes = [
   ".mp4",
   ".webm",
 ];
+
+export const supportedTextFileTypes = [".pdf"];
+
+export const supportedTextMimeTypes = ["application/pdf"];

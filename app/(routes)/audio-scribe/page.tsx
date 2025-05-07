@@ -22,9 +22,9 @@ export default function Whisperer() {
 
     if (!file) return;
 
-    // Reject file if size exceeds 25MB
-    if (file.size > 25 * 1024 * 1024) {
-      toast.error("File size exceeds 25MB limit.");
+    // Reject file if size exceeds 10 MB
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size exceeds 20MB limit.");
       return;
     }
 
@@ -98,7 +98,7 @@ export default function Whisperer() {
         <CustomFileUpload
           allowedFileTypes={supportedAudioFileTypes}
           allowedMimeTypes={supportedAudioMimeTypes}
-          maxSize={5 * 1024 * 1024} // 5MB
+          maxSize={10 * 1024 * 1024} // 20MB
           onFileUpload={handleFileUpload}
           onFileDelete={handleFileDelete}
         />

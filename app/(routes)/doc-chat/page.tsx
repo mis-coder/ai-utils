@@ -1,65 +1,112 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { nanoid } from "nanoid";
+import { ChangeEvent, useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+
+import Button from "../../components/button";
+import CustomFileUpload from "../../components/custom-file-upload";
+
+import ChatBox from "../../components/chat-box";
+import {
+  supportedTextFileTypes,
+  supportedTextMimeTypes,
+} from "../../constants";
+import { Message } from "../../lib/types";
 
 export default function PdfChatbot() {
-  const [input, setInput] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [response, setResponse] = useState<string>("");
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isProcessingPdf, setIsProcessingPdf] = useState(false);
+  const [showChatBox, setShowChatBox] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: nanoid(),
+      role: "assistant",
+      content: "Ask me anything from your uploaded documents",
+    },
+  ]);
 
-  // When a file is dropped in the dropzone, call the `/api/addData` API to train our bot on a new PDF File
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
+  const [userId] = useState(
+    () => localStorage.getItem("chat_user_id") || nanoid()
+  );
 
-    if (file.type !== "application/pdf") {
-      alert("Please upload a PDF");
-      return;
-    }
+  // Persist userId to localStorage
+  useEffect(() => {
+    localStorage.setItem("chat_user_id", userId);
+  }, [userId]);
 
-    const formData = new FormData();
-    formData.set("file", file);
-
-    const response = await fetch("/api/uploadPdf", {
-      method: "POST",
-      body: formData,
-    });
-
-    const body = await response.json();
-
-    if (body.success) {
-      alert("Data added successfully");
-    }
-  }, []);
-
-  // Configure react-dropzone
-  const { getRootProps, getInputProps } = useDropzone({
-    onDrop,
-  });
-
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const inputValue = event.target.value;
-    setInput(inputValue);
+  // Handle text input change
+  const handleInputChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(event.target.value);
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    try {
-      setInput("");
-      setResponse("");
-      setIsLoading(true);
+  // Submit prompt when Enter is pressed (without Shift)
+  const handleKeyPress = async (
+    event: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      await handleSubmit();
+    }
+  };
 
-      const res = await fetch("/api/chatWithPdf", {
+  // Upload and process the PDF file
+  const handlePdfProcess = async () => {
+    try {
+      if (!uploadedFile || uploadedFile.type !== "application/pdf") {
+        toast.error("Please upload a valid PDF file.");
+        return;
+      }
+
+      setIsProcessingPdf(true);
+
+      const formData = new FormData();
+      formData.set("file", uploadedFile);
+
+      const response = await fetch("/api/upload-doc", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt: input,
-        }),
+        body: formData,
       });
 
-      console.log({ res });
+      const result = await response.json();
+
+      if (result.success) {
+        setShowChatBox(true);
+        toast.success("Your document is ready to chat with!");
+      } else {
+        toast.error("Failed to process the PDF. Try again.");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred while processing the PDF.");
+      console.error(error);
+    } finally {
+      setIsProcessingPdf(false);
+    }
+  };
+
+  // Handle prompt submission and streaming response
+  const handleSubmit = async () => {
+    if (!input.trim()) return;
+
+    const prompt = input;
+    setInput("");
+    setIsLoading(true);
+
+    // Add user message to chat history
+    setMessages((prev) => [
+      ...prev,
+      { id: nanoid(), role: "user", content: prompt },
+    ]);
+
+    try {
+      const res = await fetch("/api/chat-with-doc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, prompt }),
+      });
+
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let fullText = "";
@@ -68,50 +115,88 @@ export default function PdfChatbot() {
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
+
           const chunk = decoder.decode(value, { stream: true });
           fullText += chunk;
-          setResponse((prev) => prev + chunk);
         }
+
+        // Add assistant message after streaming completes
+        setMessages((prev) => [
+          ...prev,
+          { id: nanoid(), role: "assistant", content: fullText },
+        ]);
       }
-    } catch (error: any) {
-      console.error(error?.message);
+    } catch (error) {
+      toast.error("Failed to get a response. Please try again.");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Validate file upload and update state
+  const handleFileUpload = (file: File) => {
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("File size exceeds the 20MB limit.");
+      return;
+    }
+
+    setUploadedFile(file);
+    toast.success("File uploaded successfully.");
+  };
+
+  // Reset entire chatbot state
+  const resetState = () => {
+    setUploadedFile(null);
+    setIsProcessingPdf(false);
+    setShowChatBox(false);
+    setMessages([
+      {
+        id: nanoid(),
+        role: "assistant",
+        content: "Ask me anything from your uploaded documents",
+      },
+    ]);
+  };
+
   return (
-    <>
-      <div
-        {...getRootProps({
-          className:
-            "dropzone bg-gray-900 border border-gray-800 p-10 rounded-md hover:bg-gray-800 transition-colors duration-200 ease-in-out cursor-pointer",
-        })}
-      >
-        <input {...getInputProps()} />
-        <p>Upload a PDF to add new data</p>
-      </div>
+    <div className="h-screen flex flex-col gap-10">
+      {/* File Upload Section */}
+      <div className="flex flex-col gap-2 items-center mt-4">
+        <CustomFileUpload
+          allowedFileTypes={supportedTextFileTypes}
+          allowedMimeTypes={supportedTextMimeTypes}
+          maxSize={20 * 1024 * 1024}
+          onFileUpload={handleFileUpload}
+          onFileDelete={resetState}
+        />
 
-      <div className="mx-auto w-full items-center max-w-md py-24 flex flex-col stretch">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            className=" w-full max-w-md text-black border border-gray-300 rounded shadow-xl p-2"
-            value={input}
-            placeholder="Enter your prompt..."
-            onChange={handleInputChange}
-          />
-
-          <button
-            disabled={isLoading}
-            type="submit"
-            className="py-2 border rounded-lg bg-gray-900 text-sm px-6"
+        {uploadedFile && !showChatBox && (
+          <Button
+            onClick={handlePdfProcess}
+            disabled={isLoading || isProcessingPdf}
           >
-            Submit
-          </button>
-
-          {response && <p className="text-center">{response}</p>}
-        </form>
+            {isProcessingPdf ? (
+              <span className="w-8 h-8 border-4 border-gray-500 border-t-transparent rounded-full animate-spin mb-2" />
+            ) : (
+              "Process PDF"
+            )}
+          </Button>
+        )}
       </div>
-    </>
+
+      <div className="h-[70%] flex md:w-1/2 mx-auto flex-col items-center overflow-auto bg-white relative rounded-md">
+        <ChatBox
+          messages={messages}
+          input={input}
+          isLoading={isLoading}
+          onInputChange={setInput}
+          onSubmit={handleSubmit}
+          onKeyPress={handleKeyPress}
+        />
+      </div>
+    </div>
   );
 }

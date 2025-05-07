@@ -122,14 +122,14 @@ export default function CustomFileUpload({
         {/* When file is uploading */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-6">
-            <div className="w-8 h-8 border-4 border-gray-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+            <div className="w-8 h-8 border-4 border-gray-500 border-t-transparent rounded-full animate-spin mb-2" />
             <p className="text-sm text-gray-600 font-medium">
               Uploading file...
             </p>
           </div>
         )}
 
-        {/* When file is selected - Non-image file */}
+        {/* When file is selected*/}
         {file && !loading && !preview && (
           <div className="w-[90%] md:w-1/2 flex items-center justify-between p-2 border-2 border-gray-800 rounded-md mx-auto">
             <div className="flex items-center">
@@ -140,7 +140,7 @@ export default function CustomFileUpload({
                 />
               </div>
               <div>
-                <p className="text-sm font-medium truncate max-w-xs">
+                <p className="text-sm font-medium truncate max-w-xs text-gray-900">
                   {file.name}
                 </p>
                 <p className="text-xs text-gray-500">
