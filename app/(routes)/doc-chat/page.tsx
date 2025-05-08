@@ -44,13 +44,18 @@ export default function PdfChatbot() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [userId] = useState(
-    () => localStorage.getItem("chat_user_id") || nanoid()
-  );
+  const [userId, setUserId] = useState(nanoid());
 
   // Persist userId to localStorage
   useEffect(() => {
-    localStorage.setItem("chat_user_id", userId);
+    const storedId = localStorage.getItem("chat_user_id");
+    if (storedId) {
+      setUserId(storedId);
+    } else {
+      const newId = nanoid();
+      localStorage.setItem("chat_user_id", newId);
+      setUserId(newId);
+    }
   }, [userId]);
 
   // Submit prompt when Enter is pressed (without Shift)
