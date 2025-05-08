@@ -30,6 +30,7 @@ export default function BasicChat() {
   // Check for required credentials on mount
   useEffect(() => {
     ensureCredentials(routeCredentials);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {

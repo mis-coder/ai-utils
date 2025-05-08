@@ -15,7 +15,7 @@ export default function Home() {
     if (modalVisible) {
       hideModal();
     }
-  }, []);
+  }, [hideModal, modalVisible]);
 
   return (
     <>

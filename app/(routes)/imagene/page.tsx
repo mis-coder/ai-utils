@@ -23,6 +23,7 @@ export default function ImageAI() {
   // Check for required credentials on mount
   useEffect(() => {
     ensureCredentials(routeCredentials);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +62,8 @@ export default function ImageAI() {
       const url = URL.createObjectURL(blob);
       setImageUrl(url);
       toast.success("Image generated!");
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error({ error });
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);

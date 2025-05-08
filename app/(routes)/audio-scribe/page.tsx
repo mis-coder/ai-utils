@@ -27,6 +27,7 @@ export default function Whisperer() {
   // Check for required credentials on mount
   useEffect(() => {
     ensureCredentials(routeCredentials);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
@@ -89,20 +90,19 @@ export default function Whisperer() {
       // Stream the response content in chunks
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let fullText = "";
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        fullText += chunk;
         setResponse((prev) => prev + chunk);
       }
 
       toast.success("Transcription completed.");
-    } catch (error) {
+    } catch (error: unknown) {
       setIsLoading(false);
+      console.error({ error });
       toast.error("An error occurred during transcription.");
     }
   };

@@ -1,8 +1,6 @@
 import React, { InputHTMLAttributes } from "react";
 
-interface Input extends InputHTMLAttributes<HTMLInputElement> {}
-
-const Input: React.FC<Input> = (props) => {
+const Input: React.FC<InputHTMLAttributes<HTMLInputElement>> = (props) => {
   return (
     <input
       className="w-full rounded-md border-1 border-gray-300 py-2 px-4 placeholder:text-gray-400"

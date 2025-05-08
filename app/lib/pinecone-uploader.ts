@@ -1,9 +1,10 @@
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { PineconeStore } from "@langchain/pinecone";
 import { Pinecone } from "@pinecone-database/pinecone";
+import { Document } from "langchain/document";
 
 export async function uploadToPinecone(
-  splitDocuments: any[],
+  splitDocuments: Document[],
   config: {
     pineconeApiKey: string;
     pineconeIndex: string;

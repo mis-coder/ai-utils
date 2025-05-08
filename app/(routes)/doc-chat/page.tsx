@@ -41,6 +41,7 @@ export default function PdfChatbot() {
   // Check for required credentials on mount
   useEffect(() => {
     ensureCredentials(routeCredentials);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [userId] = useState(
